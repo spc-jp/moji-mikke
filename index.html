@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字みっけ｜AI VOICE & TEXT</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #07111f;
+    --surface:  #0e1f35;
+    --surface2: #162a45;
+    --cyan:     #00c8b8;
+    --blue:     #0090e0;
+    --accent:   #00e5d4;
+    --danger:   #ff4d6d;
+    --green:    #06c755;
+    --text:     #e8f4f8;
+    --muted:    #7a9ab5;
+    --border:   #1e3550;
+    --radius:   14px;
+    --font:     'Noto Sans JP', sans-serif;
+    --mono:     'DM Mono', monospace;
+    --th-primary: #00c8b8;
+    --th-second:  #0090e0;
+    --th-accent:  #00e5d4;
+  }
+  /* ブルー：明るいスカイブルー */
+  body.theme-blue {
+    --th-primary:#0090e0; --th-second:#0070c0; --th-accent:#7dd3fc;
+    --bg:#f0f8ff; --surface:#ffffff; --surface2:#dbeafe;
+    --text:#0c3460; --muted:#5a8ab0; --border:#bfdbfe;
+  }
+  /* グリーン：明るいフォレストグリーン */
+  body.theme-green {
+    --th-primary:#16a34a; --th-second:#15803d; --th-accent:#4ade80;
+    --bg:#f0fdf4; --surface:#ffffff; --surface2:#dcfce7;
+    --text:#14532d; --muted:#6b9e7a; --border:#bbf7d0;
+  }
+  /* ピンク：明るいローズ */
+  body.theme-pink {
+    --th-primary:#db2777; --th-second:#be185d; --th-accent:#f9a8d4;
+    --bg:#fff0f6; --surface:#ffffff; --surface2:#fce7f3;
+    --text:#831843; --muted:#be7099; --border:#fbcfe8;
+  }
+  /* イエロー：明るいサニー */
+  body.theme-yellow {
+    --th-primary:#d97706; --th-second:#b45309; --th-accent:#fde68a;
+    --bg:#fffbeb; --surface:#ffffff; --surface2:#fef3c7;
+    --text:#78350f; --muted:#a07840; --border:#fde68a;
+  }
+  .logo-icon         { background: linear-gradient(135deg, var(--th-primary), var(--th-second)) !important; }
+  .badge-pro         { background: linear-gradient(90deg, var(--th-primary), var(--th-second)) !important; color: #fff !important; }
+  .btn-primary       { background: linear-gradient(90deg, var(--th-primary), var(--th-second)) !important; color: #fff !important; }
+  .card-title        { color: var(--th-primary) !important; }
+  .logo-text .sub    { color: var(--th-primary) !important; }
+  .mode-tab.active   { background: var(--th-primary) !important; border-color: var(--th-primary) !important; color: #fff !important; }
+  .rec-btn           { border-color: var(--th-primary) !important; }
+  .summary-section   { border-left-color: var(--th-primary) !important; }
+  .summary-section h3{ color: var(--th-primary) !important; }
+  .summary-section li::before { color: var(--th-primary) !important; }
+  .kw-tag            { color: var(--th-primary) !important; background: var(--surface2) !important; border-color: var(--border) !important; }
+  .spinner           { border-top-color: var(--th-primary) !important; }
+  #toast             { background: var(--th-primary) !important; color: #fff !important; }
+  .info-row input:focus { border-color: var(--th-primary) !important; }
+  /* ライトテーマ共通：カード・入力・ボーダー */
+  body.theme-green .card, body.theme-pink .card, body.theme-yellow .card { box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+  body.theme-green .btn-ghost, body.theme-pink .btn-ghost, body.theme-yellow .btn-ghost { color: var(--muted) !important; border-color: var(--border) !important; }
+  body.theme-green .btn-ghost:hover, body.theme-pink .btn-ghost:hover, body.theme-yellow .btn-ghost:hover { color: var(--th-primary) !important; border-color: var(--th-primary) !important; }
+  body.theme-green .mode-tab, body.theme-pink .mode-tab, body.theme-yellow .mode-tab { color: var(--muted) !important; }
+  body.theme-green #transcript-box, body.theme-pink #transcript-box, body.theme-yellow #transcript-box { background: var(--surface2) !important; }
+  body.theme-green #manual-input, body.theme-pink #manual-input, body.theme-yellow #manual-input { background: var(--surface2) !important; }
+  .settings-btn { background: transparent; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all .2s; margin-left: 8px; }
+  .settings-btn:hover { border-color: var(--th-primary); }
+  .settings-panel { display: none; position: fixed; top: 0; right: 0; width: 260px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 200; padding: 24px 18px; flex-direction: column; gap: 20px; box-shadow: -8px 0 32px rgba(0,0,0,.5); overflow-y: auto; }
+  .settings-panel.open { display: flex; }
+  .settings-panel-title { font-size: 14px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; }
+  .settings-close { background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+  .settings-section-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .theme-card { border: 2px solid var(--border); border-radius: 10px; padding: 12px 10px; cursor: pointer; transition: all .2s; text-align: center; background: var(--bg); }
+  .theme-card:hover { border-color: var(--muted); transform: scale(1.03); }
+  .theme-card.selected { border-color: var(--th-primary); }
+  .theme-swatch { width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 8px; }
+  .theme-name { font-size: 12px; font-weight: 700; color: var(--text); }
+  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 199; }
+  .settings-overlay.open { display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; transition: background .3s, color .3s; }
+
+  header { width: 100%; max-width: 640px; padding: 20px 20px 0; display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--th-primary), var(--th-second)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .logo-text .main { font-size: 17px; font-weight: 900; letter-spacing: -.3px; color: var(--text); }
+  .logo-text .sub  { font-size: 10px; color: var(--th-primary); font-weight: 500; letter-spacing: .5px; }
+  .badge-pro { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; font-size: 10px; font-weight: 900; padding: 3px 9px; border-radius: 20px; letter-spacing: 1px; }
+
+  main { width: 100%; max-width: 640px; padding: 18px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: background .3s, border-color .3s; }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--th-primary); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+  /* モードタブ */
+  .mode-tabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
+  .mode-tab { background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; font-family: var(--font); font-size: 12px; font-weight: 700; padding: 6px 13px; cursor: pointer; transition: all .2s; }
+  .mode-tab.active { background: var(--th-primary); border-color: var(--th-primary); color: #fff; }
+  .mode-desc { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+  /* 情報入力 */
+  .info-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .info-row input { flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 12px; outline: none; transition: border-color .2s; }
+  .info-row input::placeholder { color: var(--muted); }
+  .info-row input:focus { border-color: var(--th-primary); }
+
+  /* 録音 */
+  .rec-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .rec-btn { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--th-primary); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .25s; }
+  .rec-btn:hover { transform: scale(1.05); }
+  .rec-btn.recording { border-color: var(--danger); animation: pulse 1.4s ease-in-out infinite; }
+  .rec-btn .mic-icon { font-size: 38px; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.5)} 50%{box-shadow:0 0 0 18px rgba(255,77,109,0)} }
+  .rec-status { font-size: 13px; color: var(--muted); font-weight: 500; text-align: center; }
+  .rec-status.active { color: var(--danger); }
+  .rec-timer { font-family: var(--mono); font-size: 28px; color: var(--text); letter-spacing: 3px; }
+
+  #transcript-box { min-height: 100px; max-height: 200px; overflow-y: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-all; }
+  #transcript-box.placeholder { color: var(--muted); }
+  .transcript-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  /* ボタン */
+  .btn { display: inline-flex; align-items: center; gap: 5px; border: none; border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; padding: 9px 16px; transition: all .2s; }
+  .btn-primary { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+  .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .35; transform: none; cursor: not-allowed; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--th-primary); color: var(--th-primary); }
+  .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+  .btn-line { background: var(--green); color: #fff; width: 100%; justify-content: center; padding: 12px; font-size: 15px; }
+  .btn-line:hover { opacity: .88; transform: translateY(-1px); }
+
+  /* ローディング */
+  .loading-wrap { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 24px 0; }
+  .loading-wrap.visible { display: flex; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--th-primary); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-txt { font-size: 13px; color: var(--muted); }
+
+  /* 要約 */
+  #summary-wrap { display: none; }
+  #summary-wrap.visible { display: block; }
+  .summary-section { border-left: 3px solid var(--th-primary); padding-left: 13px; margin-bottom: 16px; }
+  .summary-section h3 { font-size: 11px; font-weight: 700; color: var(--th-primary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px; }
+  .summary-section ul { list-style: none; padding: 0; }
+  .summary-section li { font-size: 14px; line-height: 1.8; color: var(--text); }
+  .summary-section li::before { content: '→ '; color: var(--th-primary); }
+  .keyword-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+  .kw-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; font-size: 12px; color: var(--th-primary); font-weight: 500; }
+  .summary-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* 履歴 */
+  .history-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
+  .history-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 13px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; }
+  .history-item:hover { border-color: var(--th-primary); }
+  .history-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .history-item-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .history-item-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .history-item-preview { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+  #history-body { display: none; }
+  #history-body.open { display: block; }
+
+  /* モーダル */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(7,17,31,.88); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; padding: 20px; }
+  .modal-title { font-size: 14px; font-weight: 900; margin-bottom: 14px; line-height: 1.5; color: var(--text); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  .notice { font-size: 11px; color: var(--muted); background: var(--surface2); border-radius: 8px; padding: 10px 13px; line-height: 1.7; border: 1px solid var(--border); }
+  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--th-primary); color: #fff; font-size: 13px; font-weight: 700; padding: 9px 22px; border-radius: 30px; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🔍</div>
+  <div class="logo-text">
+    <div class="main">文字みっけ</div>
+    <div class="sub">AI VOICE & TEXT</div>
+  </div>
+  <span class="badge-pro" style="margin-left:auto;">Pro</span>
+  <button class="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
+</header>
+
+<main>
+
+  <!-- 情報入力 -->
+  <div class="card">
+    <div class="card-title">📋 情報入力（任意）</div>
+    <div class="info-row">
+      <input type="text" id="meeting-title" placeholder="タイトル・案件名">
+      <input type="text" id="meeting-date" placeholder="日時（自動入力）">
+    </div>
+  </div>
+
+  <!-- 録音 -->
+  <div class="card">
+    <div class="card-title">🎙️ 録音 ＆ 文字起こし</div>
+    <div class="rec-wrap">
+      <div class="rec-timer" id="timer">00:00</div>
+      <button class="rec-btn" id="rec-btn" onclick="toggleRec()">
+        <span class="mic-icon" id="mic-icon">🎙️</span>
+      </button>
+      <div class="rec-status" id="rec-status">タップして録音開始</div>
+    </div>
+    <div style="margin-top:16px;">
+      <div id="transcript-box" class="placeholder">録音すると、ここにリアルタイムで文字が表示されます。</div>
+      <div class="transcript-actions">
+        <button class="btn btn-ghost" onclick="clearTranscript()">🗑️ クリア</button>
+        <button class="btn btn-ghost" onclick="copyTranscript()">📋 コピー</button>
+        <button class="btn btn-ghost" onclick="toggleManual()">✏️ 手入力</button>
+      </div>
+      <textarea id="manual-input" placeholder="テキストをここに貼り付けることもできます。"
+        style="display:none;width:100%;margin-top:10px;min-height:100px;
+               background:var(--bg);border:1px solid var(--border);border-radius:9px;
+               color:var(--text);font-family:var(--font);font-size:13px;
+               padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
+    </div>
+  </div>
+
+  <!-- AI要約 -->
+  <div class="card">
+    <div class="card-title">🤖 Claude AI 要約</div>
+
+    <!-- 出力形式：ボタン直前に配置 -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;">🎯 出力形式を選ぶ</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="meeting" onclick="setMode('meeting')">📋 会議用</button>
+        <button class="mode-tab" data-mode="sales" onclick="setMode('sales')">💼 商談用</button>
+        <button class="mode-tab" data-mode="app" onclick="setMode('app')">💡 アプリ開発</button>
+        <button class="mode-tab" data-mode="study" onclick="setMode('study')">📚 勉強メモ</button>
+      </div>
+      <div class="mode-desc" id="mode-desc">要点・決定事項・次のアクション・キーワードを抽出します。</div>
+    </div>
+
+    <button class="btn btn-primary" id="summarize-btn" onclick="summarize()" disabled>✨ AI要約を生成する</button>
+
+    <div class="loading-wrap" id="loading-wrap">
+      <div class="spinner"></div>
+      <div class="loading-txt" id="loading-txt">Claudeが整理しています…</div>
+    </div>
+
+    <div id="summary-wrap">
+      <div style="height:16px;"></div>
+
+      <div id="out-meeting">
+        <div class="summary-section"><h3>📌 要点</h3><ul id="out-points"></ul></div>
+        <div class="summary-section"><h3>✅ 決定したこと</h3><ul id="out-decisions"></ul></div>
+        <div class="summary-section"><h3>📅 次のアクション</h3><ul id="out-todos"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-keywords"></div></div>
+      </div>
+
+      <div id="out-sales" style="display:none">
+        <div class="summary-section"><h3>🎯 顧客の課題・ニーズ</h3><ul id="out-needs"></ul></div>
+        <div class="summary-section"><h3>💡 提案ポイント</h3><ul id="out-proposal"></ul></div>
+        <div class="summary-section"><h3>⚠️ 懸念・反論</h3><ul id="out-concerns"></ul></div>
+        <div class="summary-section"><h3>📅 次のアクション</h3><ul id="out-next"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-sales-kw"></div></div>
+      </div>
+
+      <div id="out-app" style="display:none">
+        <div class="summary-section"><h3>💡 アプリ化できるアイデア</h3><ul id="out-ideas"></ul></div>
+        <div class="summary-section"><h3>🛠️ 必要な機能</h3><ul id="out-features"></ul></div>
+        <div class="summary-section"><h3>👤 想定ユーザー</h3><ul id="out-users"></ul></div>
+        <div class="summary-section"><h3>🚀 MVP構成案</h3><ul id="out-mvp"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-app-kw"></div></div>
+      </div>
+
+      <div id="out-study" style="display:none">
+        <div class="summary-section"><h3>📖 学んだこと</h3><ul id="out-learned"></ul></div>
+        <div class="summary-section"><h3>❓ 疑問・理解が浅い点</h3><ul id="out-questions"></ul></div>
+        <div class="summary-section"><h3>🔁 復習ポイント</h3><ul id="out-review"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-study-kw"></div></div>
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn btn-ghost" onclick="copySummary()">📋 要約をコピー</button>
+        <button class="btn btn-ghost" onclick="saveHistory()">💾 履歴に保存</button>
+        <button class="btn btn-danger" onclick="resetSummary()">🔄 リセット</button>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn btn-line" onclick="sendLine()">📲 LINEで送信</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 履歴 -->
+  <div class="card">
+    <div class="card-title" style="cursor:pointer;" onclick="toggleHistory()">
+      🗂️ 保存した履歴
+      <span id="history-count" style="margin-left:auto;font-size:11px;color:var(--muted);"></span>
+      <span id="history-arrow" style="margin-left:8px;color:var(--muted);">▼</span>
+    </div>
+    <div id="history-body">
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <div class="notice">
+    ⚙️ WORKER_URL をご自身のCloudflare Worker URLに変更してください。<br>
+    既存の会議みっけWorkerがあればそのまま流用できます。
+  </div>
+
+</main>
+
+<!-- 設定オーバーレイ -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+
+<!-- 設定パネル -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-panel-title">
+    ⚙️ 設定
+    <button class="settings-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div>
+    <div class="settings-section-label">🎨 カラーテーマ</div>
+    <div class="theme-grid">
+      <div class="theme-card selected" data-theme="blue" onclick="setTheme('blue')">
+        <div class="theme-swatch" style="background:linear-gradient(135deg,#00c8b8,#0090e0);"></div>
+        <div class="theme-name">💙 ブルー（ライト）</div>
+      </div>
+      <div class="theme-card" data-theme="green" onclick="setTheme('green')">
+        <div class="theme-swatch" style="background:linear-gradient(135deg,#22c55e,#16a34a);"></div>
+        <div class="theme-name">💚 グリーン（ライト）</div>
+      </div>
+      <div class="theme-card" data-theme="pink" onclick="setTheme('pink')">
+        <div class="theme-swatch" style="background:linear-gradient(135deg,#f472b6,#e879a0);"></div>
+        <div class="theme-name">🩷 ピンク（ライト）</div>
+      </div>
+      <div class="theme-card" data-theme="yellow" onclick="setTheme('yellow')">
+        <div class="theme-swatch" style="background:linear-gradient(135deg,#facc15,#f59e0b);"></div>
+        <div class="theme-name">💛 イエロー（ライト）</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-top:auto;">
+    選んだテーマは次回起動時も引き継がれます。
+  </div>
+</div>
+
+<!-- モーダル -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="copyModal()">📋 コピー</button>
+      <button class="btn btn-line" style="width:auto;" onclick="lineModal()">📲 LINE</button>
+      <button class="btn btn-danger" onclick="deleteHistory()">🗑️ 削除</button>
+      <button class="btn btn-ghost" onclick="closeModal()">✕ 閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const WORKER_URL = 'https://kaigi-mikkke.yymmatsu.workers.dev'; // ★変更してください
+
+const MODES = {
+  meeting: {
+    desc: '要点・決定事項・次のアクション・キーワードを抽出します。',
+    loading: 'Claudeが議事録を整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）の会議の文字起こしです。\n---\n${tx}\n---\n以下JSONのみで返してください（マークダウン不要）。\n{"mode":"meeting","points":["要点1","要点2"],"decisions":["決定1"],"todos":["アクション1"],"keywords":["kw1","kw2","kw3"]}`
+  },
+  sales: {
+    desc: '顧客ニーズ・提案ポイント・懸念点・次のアクションを整理します。',
+    loading: 'Claudeが商談内容を分析しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）の商談記録です。\n---\n${tx}\n---\n以下JSONのみで返してください（マークダウン不要）。\n{"mode":"sales","needs":["課題1"],"proposal":["提案1"],"concerns":["懸念1"],"next":["アクション1"],"keywords":["kw1","kw2"]}`
+  },
+  app: {
+    desc: 'アイデア・機能・ユーザー・MVP構成を提案します（シングルHTML前提）。',
+    loading: 'Claudeがアプリアイデアを整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）のアプリ開発メモです。\n---\n${tx}\n---\n以下JSONのみで返してください（マークダウン不要）。シングルHTMLアプリ開発の観点で提案してください。\n{"mode":"app","ideas":["アイデア1"],"features":["機能1"],"users":["ユーザー1"],"mvp":["MVP案1"],"keywords":["kw1","kw2"]}`
+  },
+  study: {
+    desc: '学んだこと・疑問点・復習ポイントをまとめます。',
+    loading: 'Claudeが学習メモを整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）の学習メモです。\n---\n${tx}\n---\n以下JSONのみで返してください（マークダウン不要）。\n{"mode":"study","learned":["学び1"],"questions":["疑問1"],"review":["復習1"],"keywords":["kw1","kw2"]}`
+  }
+};
+
+let currentMode = 'meeting';
+let finalText = '';
+let isRecording = false;
+let recognition = null;
+let timerInterval = null;
+let seconds = 0;
+let manualVisible = false;
+let lastSummaryData = null;
+let lastSummaryText = '';
+let currentHistIdx = -1;
+
+// モード
+function setMode(m) {
+  currentMode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-mode="'+m+'"]').classList.add('active');
+  document.getElementById('mode-desc').textContent = MODES[m].desc;
+}
+
+// 日時
+function setAutoDate() {
+  const now = new Date();
+  const ymd = now.toLocaleDateString('ja-JP', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  const hm  = now.toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('meeting-date').value = ymd + ' ' + hm;
+}
+
+// 文字起こし
+function getTranscript() {
+  return manualVisible ? document.getElementById('manual-input').value.trim() : finalText.trim();
+}
+function updateBtn() {
+  document.getElementById('summarize-btn').disabled = getTranscript().length === 0;
+}
+function clearTranscript() {
+  if (!confirm('文字起こしをクリアしますか？')) return;
+  finalText = ''; seconds = 0;
+  document.getElementById('timer').textContent = '00:00';
+  const b = document.getElementById('transcript-box');
+  b.textContent = '録音すると、ここにリアルタイムで文字が表示されます。';
+  b.className = 'placeholder';
+  document.getElementById('manual-input').value = '';
+  updateBtn();
+}
+function copyTranscript() {
+  const t = getTranscript();
+  if (!t) return toast('テキストがありません');
+  navigator.clipboard.writeText(t).then(() => toast('テキストをコピーしました！'));
+}
+function toggleManual() {
+  manualVisible = !manualVisible;
+  document.getElementById('manual-input').style.display = manualVisible ? 'block' : 'none';
+  updateBtn();
+}
+document.getElementById('manual-input').addEventListener('input', updateBtn);
+
+// タイマー
+function startTimer() {
+  seconds = 0;
+  timerInterval = setInterval(() => {
+    seconds++;
+    document.getElementById('timer').textContent =
+      String(Math.floor(seconds/60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0');
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+// 録音
+function toggleRec() { isRecording ? stopRec() : startRec(); }
+function startRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('このブラウザは音声認識に対応していません。\nChromeまたはSafariをお使いください。'); return; }
+  recognition = new SR();
+  recognition.lang = 'ja-JP'; recognition.continuous = true; recognition.interimResults = true;
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('rec-btn').classList.add('recording');
+    document.getElementById('mic-icon').textContent = '⏹️';
+    document.getElementById('rec-status').textContent = '録音中… もう一度タップで停止';
+    document.getElementById('rec-status').className = 'rec-status active';
+    const b = document.getElementById('transcript-box');
+    if (!finalText) { b.className = ''; b.textContent = ''; }
+    startTimer();
+  };
+  recognition.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    const b = document.getElementById('transcript-box');
+    b.textContent = finalText + (interim ? '\n（' + interim + '）' : '');
+    b.scrollTop = b.scrollHeight;
+    updateBtn();
+  };
+  recognition.onerror = (e) => { if (e.error !== 'no-speech') stopRec(); };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  recognition.start();
+}
+function stopRec() {
+  isRecording = false;
+  if (recognition) { recognition.onend = null; recognition.stop(); }
+  document.getElementById('rec-btn').classList.remove('recording');
+  document.getElementById('mic-icon').textContent = '🎙️';
+  document.getElementById('rec-status').textContent = '録音停止。AI要約ボタンを押してください';
+  document.getElementById('rec-status').className = 'rec-status';
+  stopTimer(); updateBtn();
+}
+
+// AI要約
+async function summarize() {
+  const text = getTranscript(); if (!text) return;
+  const title = document.getElementById('meeting-title').value || '無題';
+  const date  = document.getElementById('meeting-date').value  || new Date().toLocaleDateString('ja-JP');
+  const mode  = MODES[currentMode];
+  document.getElementById('loading-txt').textContent = mode.loading;
+  document.getElementById('loading-wrap').classList.add('visible');
+  document.getElementById('summary-wrap').classList.remove('visible');
+  document.getElementById('summarize-btn').disabled = true;
+  try {
+    const res  = await fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1200,
+        messages:[{ role:'user', content: mode.prompt(title,date,text) }] }) });
+    const data = await res.json();
+    const raw  = (data.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const result = JSON.parse(raw);
+    lastSummaryData = result;
+    lastSummaryText = buildText(result, title, date);
+    renderSummary(result);
+  } catch(err) {
+    alert('要約に失敗しました。\n' + err.message);
+  } finally {
+    document.getElementById('loading-wrap').classList.remove('visible');
+    document.getElementById('summarize-btn').disabled = false;
+  }
+}
+
+function renderSummary(r) {
+  const ul = (id, arr) => {
+    const el = document.getElementById(id); if(!el) return;
+    el.innerHTML = '';
+    (arr && arr.length ? arr : ['（なし）']).forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      if (!arr || !arr.length) li.style.color='var(--muted)';
+      el.appendChild(li);
+    });
+  };
+  const kw = (id, arr) => {
+    const el = document.getElementById(id); if(!el) return; el.innerHTML='';
+    (arr||[]).forEach(k => { const s=document.createElement('span'); s.className='kw-tag'; s.textContent=k; el.appendChild(s); });
+  };
+  ['out-meeting','out-sales','out-app','out-study'].forEach(id => document.getElementById(id).style.display='none');
+  if (r.mode==='meeting') {
+    document.getElementById('out-meeting').style.display='block';
+    ul('out-points',r.points); ul('out-decisions',r.decisions); ul('out-todos',r.todos); kw('out-keywords',r.keywords);
+  } else if (r.mode==='sales') {
+    document.getElementById('out-sales').style.display='block';
+    ul('out-needs',r.needs); ul('out-proposal',r.proposal); ul('out-concerns',r.concerns); ul('out-next',r.next); kw('out-sales-kw',r.keywords);
+  } else if (r.mode==='app') {
+    document.getElementById('out-app').style.display='block';
+    ul('out-ideas',r.ideas); ul('out-features',r.features); ul('out-users',r.users); ul('out-mvp',r.mvp); kw('out-app-kw',r.keywords);
+  } else if (r.mode==='study') {
+    document.getElementById('out-study').style.display='block';
+    ul('out-learned',r.learned); ul('out-questions',r.questions); ul('out-review',r.review); kw('out-study-kw',r.keywords);
+  }
+  document.getElementById('summary-wrap').classList.add('visible');
+  document.getElementById('summary-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function buildText(r, title, date) {
+  const modeLabel = {meeting:'会議メモ',sales:'商談メモ',app:'アプリ開発メモ',study:'勉強メモ'};
+  let out = `【${title}】${date}\n＜${modeLabel[r.mode]||''}＞\n\n`;
+  const sec = (label, arr) => arr && arr.length ? `◆ ${label}\n` + arr.map(i=>'・'+i).join('\n') + '\n\n' : '';
+  if (r.mode==='meeting') { out+=sec('要点',r.points)+sec('決定したこと',r.decisions)+sec('次のアクション',r.todos); }
+  else if (r.mode==='sales') { out+=sec('顧客の課題・ニーズ',r.needs)+sec('提案ポイント',r.proposal)+sec('懸念・反論',r.concerns)+sec('次のアクション',r.next); }
+  else if (r.mode==='app') { out+=sec('アプリ化アイデア',r.ideas)+sec('必要な機能',r.features)+sec('想定ユーザー',r.users)+sec('MVP構成案',r.mvp); }
+  else if (r.mode==='study') { out+=sec('学んだこと',r.learned)+sec('疑問・理解が浅い点',r.questions)+sec('復習ポイント',r.review); }
+  out += '◆ キーワード\n' + (r.keywords||[]).join('、') + '\n\n---\npowered by 文字みっけ（smileplusctg.com）';
+  return out;
+}
+
+function copySummary() {
+  if (!lastSummaryText) return toast('要約がありません');
+  navigator.clipboard.writeText(lastSummaryText).then(() => toast('要約をコピーしました！'));
+}
+function resetSummary() { document.getElementById('summary-wrap').classList.remove('visible'); lastSummaryText=''; lastSummaryData=null; }
+
+// LINE
+function sendLine(text) {
+  const t = text || lastSummaryText;
+  if (!t) return toast('要約がありません');
+  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(t), '_blank');
+}
+
+// 履歴
+function saveHistory() {
+  if (!lastSummaryData) return toast('要約がありません');
+  const title = document.getElementById('meeting-title').value || '無題';
+  const date  = document.getElementById('meeting-date').value  || new Date().toLocaleDateString('ja-JP');
+  const item  = { id:Date.now(), title, date, mode:currentMode, data:lastSummaryData, text:lastSummaryText, savedAt:new Date().toLocaleString('ja-JP') };
+  const hist  = getHist();
+  hist.unshift(item);
+  if (hist.length > 50) hist.pop();
+  localStorage.setItem('mojimikkke_hist', JSON.stringify(hist));
+  toast('履歴に保存しました！');
+  renderHistory();
+}
+function getHist() { try { return JSON.parse(localStorage.getItem('mojimikkke_hist')||'[]'); } catch { return []; } }
+
+function renderHistory() {
+  const hist = getHist();
+  const cnt  = document.getElementById('history-count');
+  cnt.textContent = hist.length ? hist.length+'件' : '';
+  const list = document.getElementById('history-list');
+  if (!hist.length) { list.innerHTML='<div class="history-empty">保存した履歴はまだありません。</div>'; return; }
+  const ml = {meeting:'📋 会議',sales:'💼 商談',app:'💡 アプリ',study:'📚 勉強'};
+  list.innerHTML = '';
+  hist.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `<div class="history-item-header"><div class="history-item-title">${ml[item.mode]||''} ${esc(item.title)}</div><div class="history-item-date">${esc(item.savedAt)}</div></div><div class="history-item-preview">${esc(item.date)}</div>`;
+    div.onclick = () => openModal(i);
+    list.appendChild(div);
+  });
+}
+function toggleHistory() {
+  const body  = document.getElementById('history-body');
+  const arrow = document.getElementById('history-arrow');
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+  if (open) renderHistory();
+}
+
+// モーダル
+function openModal(i) {
+  currentHistIdx = i;
+  const item = getHist()[i]; if (!item) return;
+  document.getElementById('modal-title').textContent = item.title + '　' + item.date;
+  const lines = item.text.split('\n');
+  let html = '';
+  lines.forEach(l => {
+    if (l.startsWith('◆')) html += `<div style="font-weight:700;color:var(--cyan);margin-top:12px;font-size:12px;">${esc(l)}</div>`;
+    else if (l.startsWith('・')) html += `<div style="font-size:13px;line-height:1.8;padding-left:8px;">${esc(l)}</div>`;
+    else if (l.startsWith('---')) html += `<hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">`;
+    else if (l.trim()) html += `<div style="font-size:12px;color:var(--muted);line-height:1.8;">${esc(l)}</div>`;
+  });
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('visible'); }
+function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
+function copyModal() { const item=getHist()[currentHistIdx]; if(item) navigator.clipboard.writeText(item.text).then(()=>toast('コピーしました！')); }
+function lineModal() { const item=getHist()[currentHistIdx]; if(item) sendLine(item.text); }
+function deleteHistory() {
+  if (!confirm('この履歴を削除しますか？')) return;
+  const hist = getHist(); hist.splice(currentHistIdx,1);
+  localStorage.setItem('mojimikkke_hist', JSON.stringify(hist));
+  closeModal(); renderHistory(); toast('削除しました');
+}
+
+// ユーティリティ
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// テーマ
+const THEMES = {
+  blue:   { primary:'#00c8b8', second:'#0090e0', accent:'#00e5d4' },
+  green:  { primary:'#22c55e', second:'#16a34a', accent:'#4ade80' },
+  pink:   { primary:'#f472b6', second:'#e879a0', accent:'#fbcfe8' },
+  yellow: { primary:'#facc15', second:'#f59e0b', accent:'#fde68a' }
+};
+function setTheme(name) {
+  const t = THEMES[name]; if (!t) return;
+  document.body.className = document.body.className.replace(/theme-\w+/g,'').trim() + ' theme-' + name;
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('selected', c.dataset.theme === name));
+  localStorage.setItem('mojimikkke_theme', name);
+}
+function loadTheme() {
+  const saved = localStorage.getItem('mojimikkke_theme') || 'blue';
+  setTheme(saved);
+}
+function openSettings() {
+  document.getElementById('settings-panel').classList.add('open');
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-panel').classList.remove('open');
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+// 初期化
+loadTheme();
+setAutoDate();
+renderHistory();
+</script>
+</body>
+</html>
