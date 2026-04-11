@@ -2,27 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>文字みっけ｜AI VOICE & TEXT</title>
-
-<!-- Favicon & Apple Touch Icon -->
-<link rel="icon" href="favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="favicon.png">
-
-<!-- OGP (Open Graph Protocol) -->
-<meta property="og:title" content="文字みっけ｜AI VOICE & TEXT">
-<meta property="og:description" content="会議・商談・勉強メモを自動整理。会議の“あれ、何て言ったっけ？”をゼロにするAI音声認識＆要約ツール。">
-<meta property="og:type" content="website">
-<meta property="og:url" content=""> <!-- ※ここに実際の公開URLを設定してください -->
-<meta property="og:image" content="ogp.jpg">
-<meta property="og:site_name" content="文字みっけ">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="文字みっけ｜AI VOICE & TEXT">
-<meta name="twitter:description" content="会議・商談・勉強メモを自動整理。会議の“あれ、何て言ったっけ？”をゼロにするAI音声認識＆要約ツール。">
-<meta name="twitter:image" content="ogp.jpg">
-
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -44,25 +25,21 @@
     --th-second:  #0090e0;
     --th-accent:  #00e5d4;
   }
-  /* ブルー：明るいスカイブルー */
   body.theme-blue {
     --th-primary:#0090e0; --th-second:#0070c0; --th-accent:#7dd3fc;
     --bg:#f0f8ff; --surface:#ffffff; --surface2:#dbeafe;
     --text:#0c3460; --muted:#5a8ab0; --border:#bfdbfe;
   }
-  /* グリーン：明るいフォレストグリーン */
   body.theme-green {
     --th-primary:#16a34a; --th-second:#15803d; --th-accent:#4ade80;
     --bg:#f0fdf4; --surface:#ffffff; --surface2:#dcfce7;
     --text:#14532d; --muted:#6b9e7a; --border:#bbf7d0;
   }
-  /* ピンク：明るいローズ */
   body.theme-pink {
     --th-primary:#db2777; --th-second:#be185d; --th-accent:#f9a8d4;
     --bg:#fff0f6; --surface:#ffffff; --surface2:#fce7f3;
     --text:#831843; --muted:#be7099; --border:#fbcfe8;
   }
-  /* イエロー：明るいサニー */
   body.theme-yellow {
     --th-primary:#d97706; --th-second:#b45309; --th-accent:#fde68a;
     --bg:#fffbeb; --surface:#ffffff; --surface2:#fef3c7;
@@ -82,78 +59,86 @@
   .spinner           { border-top-color: var(--th-primary) !important; }
   #toast             { background: var(--th-primary) !important; color: #fff !important; }
   .info-row input:focus { border-color: var(--th-primary) !important; }
-  /* ライトテーマ共通：カード・入力・ボーダー */
+
   body.theme-green .card, body.theme-pink .card, body.theme-yellow .card { box-shadow: 0 2px 12px rgba(0,0,0,.07); }
   body.theme-green .btn-ghost, body.theme-pink .btn-ghost, body.theme-yellow .btn-ghost { color: var(--muted) !important; border-color: var(--border) !important; }
   body.theme-green .btn-ghost:hover, body.theme-pink .btn-ghost:hover, body.theme-yellow .btn-ghost:hover { color: var(--th-primary) !important; border-color: var(--th-primary) !important; }
   body.theme-green .mode-tab, body.theme-pink .mode-tab, body.theme-yellow .mode-tab { color: var(--muted) !important; }
   body.theme-green #transcript-box, body.theme-pink #transcript-box, body.theme-yellow #transcript-box { background: var(--surface2) !important; }
   body.theme-green #manual-input, body.theme-pink #manual-input, body.theme-yellow #manual-input { background: var(--surface2) !important; }
-  .settings-btn { background: transparent; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all .2s; margin-left: 8px; }
+
+  .settings-btn { background: transparent; border: 1px solid var(--border); border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all .2s; margin-left: 8px; -webkit-tap-highlight-color: transparent; }
   .settings-btn:hover { border-color: var(--th-primary); }
-  .settings-panel { display: none; position: fixed; top: 0; right: 0; width: 260px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 200; padding: 24px 18px; flex-direction: column; gap: 20px; box-shadow: -8px 0 32px rgba(0,0,0,.5); overflow-y: auto; }
+  .settings-panel { display: none; position: fixed; top: 0; right: 0; width: 270px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 200; padding: 24px 18px; flex-direction: column; gap: 20px; box-shadow: -8px 0 32px rgba(0,0,0,.5); overflow-y: auto; }
   .settings-panel.open { display: flex; }
   .settings-panel-title { font-size: 14px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; }
-  .settings-close { background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+  .settings-close { background: transparent; border: none; color: var(--muted); font-size: 24px; cursor: pointer; line-height: 1; padding: 4px 8px; }
   .settings-section-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
   .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .theme-card { border: 2px solid var(--border); border-radius: 10px; padding: 12px 10px; cursor: pointer; transition: all .2s; text-align: center; background: var(--bg); }
+  .theme-card { border: 2px solid var(--border); border-radius: 10px; padding: 12px 10px; cursor: pointer; transition: all .2s; text-align: center; background: var(--bg); -webkit-tap-highlight-color: transparent; }
   .theme-card:hover { border-color: var(--muted); transform: scale(1.03); }
   .theme-card.selected { border-color: var(--th-primary); }
   .theme-swatch { width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 8px; }
   .theme-name { font-size: 12px; font-weight: 700; color: var(--text); }
   .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 199; }
   .settings-overlay.open { display: block; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; transition: background .3s, color .3s; }
 
-  header { width: 100%; max-width: 640px; padding: 20px 20px 0; display: flex; align-items: center; gap: 10px; }
-  .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--th-primary), var(--th-second)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; transition: background .3s, color .3s; -webkit-text-size-adjust: 100%; }
+
+  header { width: 100%; max-width: 640px; padding: 16px 16px 0; display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--th-primary), var(--th-second)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .logo-text .main { font-size: 17px; font-weight: 900; letter-spacing: -.3px; color: var(--text); }
   .logo-text .sub  { font-size: 10px; color: var(--th-primary); font-weight: 500; letter-spacing: .5px; }
-  .badge-pro { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; font-size: 10px; font-weight: 900; padding: 3px 9px; border-radius: 20px; letter-spacing: 1px; }
+  .badge-pro { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; white-space: nowrap; }
 
-  main { width: 100%; max-width: 640px; padding: 18px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+  main { width: 100%; max-width: 640px; padding: 14px 12px 60px; display: flex; flex-direction: column; gap: 14px; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: background .3s, border-color .3s; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: background .3s, border-color .3s; }
   .card-title { font-size: 11px; font-weight: 700; color: var(--th-primary); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-  /* モードタブ */
-  .mode-tabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
-  .mode-tab { background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; font-family: var(--font); font-size: 12px; font-weight: 700; padding: 6px 13px; cursor: pointer; transition: all .2s; }
+  /* モードタブ：スマホ横スクロール対応 */
+  .mode-tabs { display: flex; gap: 7px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 4px; }
+  .mode-tabs::-webkit-scrollbar { display: none; }
+  .mode-tab { background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; font-family: var(--font); font-size: 13px; font-weight: 700; padding: 8px 14px; cursor: pointer; transition: all .2s; white-space: nowrap; min-height: 44px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
   .mode-tab.active { background: var(--th-primary); border-color: var(--th-primary); color: #fff; }
-  .mode-desc { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .mode-desc { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
 
   /* 情報入力 */
   .info-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .info-row input { flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 12px; outline: none; transition: border-color .2s; }
+  /* iOSズーム防止：font-size 16px以上 */
+  .info-row input { flex: 1; min-width: 130px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 16px; padding: 10px 12px; outline: none; transition: border-color .2s; -webkit-appearance: none; }
   .info-row input::placeholder { color: var(--muted); }
   .info-row input:focus { border-color: var(--th-primary); }
 
   /* 録音 */
   .rec-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-  .rec-btn { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--th-primary); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .25s; }
-  .rec-btn:hover { transform: scale(1.05); }
+  .rec-btn { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--th-primary); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .25s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .rec-btn:active { transform: scale(0.95); }
   .rec-btn.recording { border-color: var(--danger); animation: pulse 1.4s ease-in-out infinite; }
-  .rec-btn .mic-icon { font-size: 38px; }
+  .rec-btn .mic-icon { font-size: 42px; }
   @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.5)} 50%{box-shadow:0 0 0 18px rgba(255,77,109,0)} }
-  .rec-status { font-size: 13px; color: var(--muted); font-weight: 500; text-align: center; }
+  .rec-status { font-size: 13px; color: var(--muted); font-weight: 500; text-align: center; line-height: 1.5; }
   .rec-status.active { color: var(--danger); }
-  .rec-timer { font-family: var(--mono); font-size: 28px; color: var(--text); letter-spacing: 3px; }
+  .rec-timer { font-family: var(--mono); font-size: 32px; color: var(--text); letter-spacing: 3px; }
 
-  #transcript-box { min-height: 100px; max-height: 200px; overflow-y: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-all; }
+  /* マイク許可バナー */
+  #mic-permission-banner { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; text-align: center; margin-top: 8px; }
+  #mic-permission-banner.visible { display: block; }
+
+  #transcript-box { min-height: 100px; max-height: 200px; overflow-y: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 12px; font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-all; -webkit-overflow-scrolling: touch; }
   #transcript-box.placeholder { color: var(--muted); }
   .transcript-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
-  /* ボタン */
-  .btn { display: inline-flex; align-items: center; gap: 5px; border: none; border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 700; padding: 9px 16px; transition: all .2s; }
-  .btn-primary { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+  /* ボタン：タッチ領域を44px以上に */
+  .btn { display: inline-flex; align-items: center; gap: 5px; border: none; border-radius: 8px; cursor: pointer; font-family: var(--font); font-size: 14px; font-weight: 700; padding: 10px 16px; transition: all .2s; min-height: 44px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .btn-primary { background: linear-gradient(90deg, var(--th-primary), var(--th-second)); color: #fff; width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
   .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
   .btn-primary:disabled { opacity: .35; transform: none; cursor: not-allowed; }
   .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .btn-ghost:hover { border-color: var(--th-primary); color: var(--th-primary); }
   .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-  .btn-line { background: var(--green); color: #fff; width: 100%; justify-content: center; padding: 12px; font-size: 15px; }
+  .btn-line { background: var(--green); color: #fff; width: 100%; justify-content: center; padding: 13px; font-size: 16px; }
   .btn-line:hover { opacity: .88; transform: translateY(-1px); }
 
   /* ローディング */
@@ -172,12 +157,12 @@
   .summary-section li { font-size: 14px; line-height: 1.8; color: var(--text); }
   .summary-section li::before { content: '→ '; color: var(--th-primary); }
   .keyword-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
-  .kw-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; font-size: 12px; color: var(--th-primary); font-weight: 500; }
+  .kw-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--th-primary); font-weight: 500; }
   .summary-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 
   /* 履歴 */
   .history-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
-  .history-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 13px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; }
+  .history-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; -webkit-tap-highlight-color: transparent; }
   .history-item:hover { border-color: var(--th-primary); }
   .history-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
   .history-item-title { font-size: 13px; font-weight: 700; color: var(--text); }
@@ -187,18 +172,35 @@
   #history-body.open { display: block; }
 
   /* モーダル */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(7,17,31,.88); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(7,17,31,.88); z-index: 100; align-items: center; justify-content: center; padding: 12px; }
   .modal-overlay.visible { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; padding: 20px; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 18px; -webkit-overflow-scrolling: touch; }
   .modal-title { font-size: 14px; font-weight: 900; margin-bottom: 14px; line-height: 1.5; color: var(--text); }
   .modal-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 
-  .notice { font-size: 11px; color: var(--muted); background: var(--surface2); border-radius: 8px; padding: 10px 13px; line-height: 1.7; border: 1px solid var(--border); }
-  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--th-primary); color: #fff; font-size: 13px; font-weight: 700; padding: 9px 22px; border-radius: 30px; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; }
+  /* 手動入力テキストエリア */
+  #manual-input { width: 100%; margin-top: 10px; min-height: 100px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-family: var(--font); font-size: 16px; padding: 12px; outline: none; resize: vertical; line-height: 1.8; -webkit-appearance: none; }
+
+  .notice { font-size: 12px; color: var(--muted); background: var(--surface2); border-radius: 8px; padding: 10px 13px; line-height: 1.7; border: 1px solid var(--border); }
+  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--th-primary); color: #fff; font-size: 13px; font-weight: 700; padding: 10px 24px; border-radius: 30px; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; white-space: nowrap; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* スマホ向け追加調整 */
+  @media (max-width: 480px) {
+    header { padding: 14px 12px 0; }
+    main { padding: 12px 10px 60px; gap: 12px; }
+    .card { padding: 14px 12px; }
+    .rec-btn { width: 100px; height: 100px; }
+    .rec-btn .mic-icon { font-size: 38px; }
+    .rec-timer { font-size: 28px; }
+    .summary-actions { gap: 6px; }
+    .summary-actions .btn { font-size: 13px; padding: 9px 12px; }
+    .modal-actions { gap: 6px; }
+    .modal-actions .btn { font-size: 13px; padding: 9px 12px; }
+  }
 </style>
 </head>
 <body>
@@ -234,6 +236,11 @@
       </button>
       <div class="rec-status" id="rec-status">タップして録音開始</div>
     </div>
+    <!-- マイク許可エラー表示 -->
+    <div id="mic-permission-banner">
+      🎤 マイクの使用を許可してください。<br>
+      ブラウザの設定からマイクを「許可」にして、もう一度タップしてください。
+    </div>
     <div style="margin-top:16px;">
       <div id="transcript-box" class="placeholder">録音すると、ここにリアルタイムで文字が表示されます。</div>
       <div class="transcript-actions">
@@ -241,11 +248,7 @@
         <button class="btn btn-ghost" onclick="copyTranscript()">📋 コピー</button>
         <button class="btn btn-ghost" onclick="toggleManual()">✏️ 手入力</button>
       </div>
-      <textarea id="manual-input" placeholder="テキストをここに貼り付けることもできます。"
-        style="display:none;width:100%;margin-top:10px;min-height:100px;
-               background:var(--bg);border:1px solid var(--border);border-radius:9px;
-               color:var(--text);font-family:var(--font);font-size:13px;
-               padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
+      <textarea id="manual-input" placeholder="テキストをここに貼り付けることもできます。" style="display:none;"></textarea>
     </div>
   </div>
 
@@ -253,7 +256,6 @@
   <div class="card">
     <div class="card-title">🤖 Claude AI 要約</div>
 
-    <!-- 出力形式：ボタン直前に配置 -->
     <div style="margin-bottom:14px;">
       <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;">🎯 出力形式を選ぶ</div>
       <div class="mode-tabs">
@@ -478,13 +480,38 @@ function startTimer() {
 }
 function stopTimer() { clearInterval(timerInterval); }
 
-// 録音
+// ===================================
+// 録音：マイク許可を先に取得してから開始
+// ===================================
 function toggleRec() { isRecording ? stopRec() : startRec(); }
-function startRec() {
+
+async function startRec() {
+  // SpeechRecognition サポート確認
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('このブラウザは音声認識に対応していません。\nChromeまたはSafariをお使いください。'); return; }
+  if (!SR) {
+    alert('このブラウザは音声認識に対応していません。\nChromeまたはSafari（最新版）をお使いください。');
+    return;
+  }
+
+  // マイク許可を先に明示的に取得（iOS・Android対応）
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 許可取得後はストリームを即停止（SpeechRecognitionが別途使う）
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById('mic-permission-banner').classList.remove('visible');
+  } catch (err) {
+    // マイク許可拒否またはデバイスなし
+    document.getElementById('mic-permission-banner').classList.add('visible');
+    document.getElementById('rec-status').textContent = 'マイクを許可してください';
+    return;
+  }
+
+  // SpeechRecognition 開始
   recognition = new SR();
-  recognition.lang = 'ja-JP'; recognition.continuous = true; recognition.interimResults = true;
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
   recognition.onstart = () => {
     isRecording = true;
     document.getElementById('rec-btn').classList.add('recording');
@@ -495,6 +522,7 @@ function startRec() {
     if (!finalText) { b.className = ''; b.textContent = ''; }
     startTimer();
   };
+
   recognition.onresult = (e) => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -506,13 +534,34 @@ function startRec() {
     b.scrollTop = b.scrollHeight;
     updateBtn();
   };
-  recognition.onerror = (e) => { if (e.error !== 'no-speech') stopRec(); };
-  recognition.onend = () => { if (isRecording) recognition.start(); };
-  recognition.start();
+
+  recognition.onerror = (e) => {
+    console.warn('SpeechRecognition error:', e.error);
+    if (e.error === 'not-allowed') {
+      document.getElementById('mic-permission-banner').classList.add('visible');
+      stopRec();
+    } else if (e.error !== 'no-speech') {
+      stopRec();
+    }
+  };
+
+  // 途中で自動停止しても再起動（continuous録音）
+  recognition.onend = () => {
+    if (isRecording) {
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch(e) {
+    toast('録音を開始できませんでした。ページを再読み込みしてお試しください。');
+  }
 }
+
 function stopRec() {
   isRecording = false;
-  if (recognition) { recognition.onend = null; recognition.stop(); }
+  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
   document.getElementById('rec-btn').classList.remove('recording');
   document.getElementById('mic-icon').textContent = '🎙️';
   document.getElementById('rec-status').textContent = '録音停止。AI要約ボタンを押してください';
