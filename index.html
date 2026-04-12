@@ -95,9 +95,7 @@
   .rec-status.active { color:var(--danger); }
   .rec-timer { font-family:var(--mono); font-size:30px; color:var(--text); letter-spacing:3px; }
 
-  .mic-guide { background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:12px 14px; font-size:12px; color:var(--muted); line-height:1.7; display:none; margin-top:10px; }
-  .mic-guide.show { display:block; }
-  .mic-guide strong { color:var(--th-primary); }
+  .mic-guide { display:none; }
 
   #transcript-box { min-height:90px; max-height:160px; overflow-y:auto; background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:12px; font-size:14px; line-height:1.8; color:var(--text); white-space:pre-wrap; word-break:break-all; -webkit-overflow-scrolling:touch; margin-top:14px; }
   #transcript-box.placeholder { color:var(--muted); }
@@ -271,11 +269,6 @@
           <span class="mic-icon" id="mic-icon">🎙️</span>
         </button>
         <div class="rec-status" id="rec-status">タップして録音開始</div>
-      </div>
-      <div class="mic-guide" id="mic-guide">
-        <strong>🎤 マイクの許可が必要です</strong><br>
-        ブラウザのアドレスバー横にある🔒アイコンをタップ →「マイク」を「許可」に変更してページを再読み込みしてください。<br>
-        iPhoneの場合：設定アプリ → Safari → マイク → 許可
       </div>
       <div id="transcript-box" class="placeholder">録音すると、ここにリアルタイムで文字が表示されます。</div>
       <div class="transcript-actions">
@@ -584,17 +577,16 @@ function toggleRec() { isRecording ? stopRec() : startRec(); }
 function startRec() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('音声認識に対応していません。\nChromeまたはSafariをお使いください。'); return; }
+  // getUserMediaでiOSネイティブ許可ダイアログを自動表示
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         stream.getTracks().forEach(t => t.stop());
-        document.getElementById('mic-guide').classList.remove('show');
         initRecognition(SR);
       })
       .catch(() => {
-        document.getElementById('mic-guide').classList.add('show');
-        document.getElementById('rec-status').textContent = 'マイクの許可が必要です↓';
-        toast('マイクの許可をお願いします');
+        toast('マイクの使用を許可してください🎤');
+        document.getElementById('rec-status').textContent = 'タップして録音開始';
       });
   } else {
     initRecognition(SR);
@@ -639,8 +631,7 @@ function initRecognition(SR) {
       document.getElementById('mic-icon').textContent = '🎙️';
       document.getElementById('rec-status').textContent = 'タップして録音開始';
       document.getElementById('rec-status').className = 'rec-status';
-      document.getElementById('mic-guide').classList.add('show');
-      toast('マイクの許可が必要です');
+      toast('マイクの使用を許可してください🎤');
     }
   };
 
