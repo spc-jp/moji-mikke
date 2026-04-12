@@ -577,20 +577,8 @@ function toggleRec() { isRecording ? stopRec() : startRec(); }
 function startRec() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('音声認識に対応していません。\nChromeまたはSafariをお使いください。'); return; }
-  // getUserMediaでiOSネイティブ許可ダイアログを自動表示
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        stream.getTracks().forEach(t => t.stop());
-        initRecognition(SR);
-      })
-      .catch(() => {
-        toast('マイクの使用を許可してください🎤');
-        document.getElementById('rec-status').textContent = 'タップして録音開始';
-      });
-  } else {
-    initRecognition(SR);
-  }
+  // SpeechRecognition自体がiOS/Androidの許可ダイアログを自動表示する
+  initRecognition(SR);
 }
 
 function initRecognition(SR) {
