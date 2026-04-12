@@ -583,11 +583,17 @@ function startRec() {
 
 function initRecognition(SR) {
   restartAttempts = 0;
-  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  if (recognition) { try { recognition.abort(); } catch(e) {} recognition = null; }
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
   recognition = new SR();
   recognition.lang = 'ja-JP';
-  recognition.continuous = true;
-  recognition.interimResults = true;
+  recognition.continuous     = !isIOS; // iOSはcontinuous非対応
+  recognition.interimResults = !isIOS; // iOSはinterimResults非対応
+
+  // 起動中フィードバック
+  document.getElementById('rec-status').textContent = '起動中…';
 
   recognition.onstart = () => {
     isRecording = true; restartAttempts = 0;
@@ -601,42 +607,56 @@ function initRecognition(SR) {
   };
 
   recognition.onresult = (e) => {
-    let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
-      else interim += e.results[i][0].transcript;
     }
+    // iOSはinterimなしなのでfinalTextのみ表示
     const b = document.getElementById('transcript-box');
-    b.textContent = finalText + (interim ? '\n（' + interim + '）' : '');
+    b.textContent = finalText;
     b.scrollTop = b.scrollHeight;
     updateBtn();
   };
 
   recognition.onerror = (e) => {
+    console.warn('SpeechRecognition error:', e.error);
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-      isRecording = false; stopTimer();
-      document.getElementById('rec-btn').classList.remove('recording');
-      document.getElementById('mic-icon').textContent = '🎙️';
-      document.getElementById('rec-status').textContent = 'タップして録音開始';
-      document.getElementById('rec-status').className = 'rec-status';
+      stopRec();
       toast('マイクの使用を許可してください🎤');
+      return;
     }
+    if (e.error === 'no-speech') return; // 無音は無視
   };
 
   recognition.onend = () => {
     if (!isRecording) return;
+    // iOSは1発言ごとに終了するので即再スタート
     if (restartAttempts < MAX_RESTART) {
       restartAttempts++;
-      setTimeout(() => {
-        if (!isRecording) return;
-        try { recognition.start(); } catch(e) { stopRec(); toast('録音が中断されました。再度タップしてください。'); }
-      }, 300);
+      try {
+        recognition.start();
+      } catch(e) {
+        // 再スタート失敗時は少し待って再試行
+        setTimeout(() => {
+          if (!isRecording) return;
+          try { recognition.start(); } catch(e2) {
+            stopRec();
+            toast('録音が中断されました。再度タップしてください。');
+          }
+        }, 200);
+      }
     } else {
-      stopRec(); toast('録音を一時停止しました。再度タップで継続できます。');
+      stopRec();
+      toast('録音を一時停止しました。再度タップで継続できます。');
     }
   };
 
-  try { recognition.start(); } catch(e) { toast('録音開始に失敗しました。もう一度タップしてください。'); }
+  try {
+    recognition.start();
+  } catch(e) {
+    console.error('recognition.start() failed:', e);
+    document.getElementById('rec-status').textContent = 'タップして録音開始';
+    toast('録音開始に失敗しました。もう一度タップしてください。');
+  }
 }
 
 function stopRec() {
