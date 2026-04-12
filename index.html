@@ -637,7 +637,8 @@ function initRecognition(SR) {
     console.warn('SpeechRecognition error:', e.error);
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
       stopRec();
-      toast('マイクの使用を許可してください🎤');
+      // マイク許可が取れない場合はSafari案内を全画面表示
+      showSafariGuide();
       return;
     }
     if (e.error === 'no-speech') return; // 無音は無視
@@ -906,12 +907,15 @@ function closeSettings() { document.getElementById('settings-panel').classList.r
 function checkSafariBrowser() {
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua);
-  if (!isIOS) return; // PC・Androidはスルー
   const isStandalone = window.navigator.standalone === true;
-  const isSafari = /Safari/.test(ua) && !/CriOS/.test(ua) && !/FxiOS/.test(ua) && !/Line/.test(ua) && !isStandalone;
-  if (!isSafari) {
+  // ホーム画面スタンドアロンのみ案内表示（インアプリはマイクエラー時に表示）
+  if (isIOS && isStandalone) {
     document.getElementById('safari-guide').style.display = 'flex';
   }
+}
+
+function showSafariGuide() {
+  document.getElementById('safari-guide').style.display = 'flex';
 }
 
 // ===== 初期化 =====
