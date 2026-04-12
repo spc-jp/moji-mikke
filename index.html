@@ -598,79 +598,79 @@ function startTimer() {
 function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
 
 // ===== 録音 =====
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
 function toggleRec() { isRecording ? stopRec() : startRec(); }
 
 function startRec() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('音声認識に対応していません。\nChromeまたはSafariをお使いください。'); return; }
-  // SpeechRecognition自体がiOS/Androidの許可ダイアログを自動表示する
-  initRecognition(SR);
+  if (!SR) {
+    alert('音声認識に対応していません。\nSafariまたはChromeをお使いください。');
+    return;
+  }
+  setStatus('🎤 マイク準備中…', false);
+  doRecognition(SR, 0);
 }
 
-function initRecognition(SR) {
-  restartAttempts = 0;
-  if (recognition) { try { recognition.abort(); } catch(e) {} recognition = null; }
+function doRecognition(SR, attempt) {
+  if (!isRecording && attempt > 0) return; // 停止済みなら再起動しない
 
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  // iOSは毎回新しいインスタンスを生成する
+  if (recognition) {
+    try { recognition.onstart = null; recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
 
-  recognition = new SR();
-  recognition.lang = 'ja-JP';
-  recognition.continuous     = !isIOS; // iOSはcontinuous非対応
-  recognition.interimResults = !isIOS; // iOSはinterimResults非対応
+  const rec = new SR();
+  recognition = rec;
+  rec.lang = 'ja-JP';
+  rec.continuous     = !isIOS;
+  rec.interimResults = !isIOS;
+  rec.maxAlternatives = 1;
 
-  // 起動中フィードバック
-  document.getElementById('rec-status').textContent = '起動中…';
-
-  recognition.onstart = () => {
-    isRecording = true; restartAttempts = 0;
+  rec.onstart = () => {
+    if (rec !== recognition) return;
+    isRecording = true;
     document.getElementById('rec-btn').classList.add('recording');
     document.getElementById('mic-icon').textContent = '⏹️';
-    document.getElementById('rec-status').textContent = '録音中… もう一度タップで停止';
-    document.getElementById('rec-status').className = 'rec-status active';
+    setStatus('録音中… もう一度タップで停止', true);
     const b = document.getElementById('transcript-box');
     if (!finalText) { b.className = ''; b.textContent = ''; }
-    startTimer();
+    if (attempt === 0) startTimer();
   };
 
-  recognition.onresult = (e) => {
+  rec.onresult = (e) => {
+    if (rec !== recognition) return;
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      if (e.results[i].isFinal) {
+        finalText += e.results[i][0].transcript;
+      } else if (!isIOS) {
+        // PC/Androidのみ途中結果を表示
+      }
     }
-    // iOSはinterimなしなのでfinalTextのみ表示
     const b = document.getElementById('transcript-box');
     b.textContent = finalText;
     b.scrollTop = b.scrollHeight;
     updateBtn();
   };
 
-  recognition.onerror = (e) => {
+  rec.onerror = (e) => {
+    if (rec !== recognition) return;
     console.warn('SpeechRecognition error:', e.error);
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
       stopRec();
-      // マイク許可が取れない場合はSafari案内を全画面表示
       showSafariGuide();
       return;
     }
-    if (e.error === 'no-speech') return; // 無音は無視
+    // no-speech・network は継続
   };
 
-  recognition.onend = () => {
+  rec.onend = () => {
+    if (rec !== recognition) return;
     if (!isRecording) return;
-    // iOSは1発言ごとに終了するので即再スタート
-    if (restartAttempts < MAX_RESTART) {
-      restartAttempts++;
-      try {
-        recognition.start();
-      } catch(e) {
-        // 再スタート失敗時は少し待って再試行
-        setTimeout(() => {
-          if (!isRecording) return;
-          try { recognition.start(); } catch(e2) {
-            stopRec();
-            toast('録音が中断されました。再度タップしてください。');
-          }
-        }, 200);
-      }
+    // 再起動上限チェック
+    if (attempt < MAX_RESTART) {
+      setTimeout(() => doRecognition(SR, attempt + 1), 150);
     } else {
       stopRec();
       toast('録音を一時停止しました。再度タップで継続できます。');
@@ -678,22 +678,32 @@ function initRecognition(SR) {
   };
 
   try {
-    recognition.start();
+    rec.start();
   } catch(e) {
-    console.error('recognition.start() failed:', e);
-    document.getElementById('rec-status').textContent = 'タップして録音開始';
-    toast('録音開始に失敗しました。もう一度タップしてください。');
+    console.error('rec.start() failed:', e);
+    if (attempt === 0) {
+      setStatus('タップして録音開始', false);
+      toast('もう一度タップしてください');
+    }
   }
 }
 
 function stopRec() {
   isRecording = false;
-  if (recognition) { recognition.onend = null; try { recognition.stop(); } catch(e) {} recognition = null; }
+  if (recognition) {
+    try { recognition.onstart = null; recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
   document.getElementById('rec-btn').classList.remove('recording');
   document.getElementById('mic-icon').textContent = '🎙️';
-  document.getElementById('rec-status').textContent = '録音停止。AI要約ボタンを押してください';
-  document.getElementById('rec-status').className = 'rec-status';
+  setStatus('録音停止。AI要約ボタンを押してください', false);
   stopTimer(); updateBtn();
+}
+
+function setStatus(msg, active) {
+  const el = document.getElementById('rec-status');
+  el.textContent = msg;
+  el.className = 'rec-status' + (active ? ' active' : '');
 }
 
 // ===== トライアル管理 =====
