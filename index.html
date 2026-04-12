@@ -226,19 +226,29 @@
 <body>
 
 <!-- Safari以外で開いた場合の案内 -->
-<div id="safari-guide" style="display:none; position:fixed; inset:0; background:rgba(7,17,31,.97); z-index:1000; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;">
-  <div style="font-size:56px; margin-bottom:16px;">🧭</div>
-  <div style="font-size:20px; font-weight:900; color:#e8f4f8; margin-bottom:12px; line-height:1.4;">Safariでお開きください</div>
-  <div style="font-size:14px; color:#7a9ab5; margin-bottom:28px; line-height:1.8;">このアプリのマイク機能は<br>Safariでのみ正常に動作します。<br>下のURLをコピーしてSafariで開いてください。</div>
-  <div style="background:#0e1f35; border:1px solid #1e3550; border-radius:12px; padding:14px 20px; margin-bottom:28px; width:100%;">
-    <div style="font-size:11px; color:#7a9ab5; margin-bottom:6px;">URL</div>
-    <div style="font-size:15px; color:#00c8b8; font-weight:700; word-break:break-all; letter-spacing:.3px;">moji-mikke.pages.dev</div>
+<div id="safari-guide" style="display:none; position:fixed; inset:0; background:rgba(7,17,31,.98); z-index:1000; flex-direction:column; align-items:center; justify-content:center; padding:28px; text-align:center; overflow-y:auto;">
+  <div style="font-size:52px; margin-bottom:14px;">🧭</div>
+  <div style="font-size:19px; font-weight:900; color:#e8f4f8; margin-bottom:10px; line-height:1.4;">Safariで開いてください</div>
+  <div style="font-size:13px; color:#7a9ab5; margin-bottom:24px; line-height:1.8;">このアプリのマイク機能は<br><strong style="color:#00c8b8;">Safari専用</strong>です。<br>今開いているブラウザでは<br>マイクが使えません。</div>
+
+  <div style="background:#0e1f35; border:1px solid #1e3550; border-radius:12px; padding:16px; margin-bottom:20px; width:100%; text-align:left;">
+    <div style="font-size:11px; color:#7a9ab5; font-weight:700; margin-bottom:10px; letter-spacing:1px;">📋 SAFARIで開く手順</div>
+    <div style="font-size:13px; color:#e8f4f8; line-height:2;">
+      1️⃣ 画面下の <strong style="color:#00c8b8;">「…」</strong> または <strong style="color:#00c8b8;">「⋮」</strong> をタップ<br>
+      2️⃣ <strong style="color:#00c8b8;">「Safariで開く」</strong> を選択<br>
+      3️⃣ Safariで開いたら<br>　　そのままご利用ください
+    </div>
   </div>
-  <a href="https://moji-mikke.pages.dev" target="_blank" rel="noopener"
-     style="background:linear-gradient(90deg,#00c8b8,#0090e0); color:#fff; font-size:16px; font-weight:900; padding:15px 0; border-radius:12px; text-decoration:none; display:block; width:100%; margin-bottom:12px;">
-    🧭 Safariで開く
-  </a>
-  <div style="font-size:11px; color:#7a9ab5; line-height:1.7; margin-top:8px;">iPhoneのホーム画面に追加する場合は<br>SafariでURLを開いてから「ホーム画面に追加」してください。</div>
+
+  <div style="background:#0e1f35; border:1px solid #1e3550; border-radius:12px; padding:14px 16px; margin-bottom:20px; width:100%;">
+    <div style="font-size:11px; color:#7a9ab5; margin-bottom:6px;">または このURLをコピーしてSafariに貼り付け</div>
+    <div id="site-url" style="font-size:14px; color:#00c8b8; font-weight:700; word-break:break-all;">moji-mikke.pages.dev</div>
+    <button onclick="copyUrl()" style="margin-top:10px; background:#1e3550; border:1px solid #00c8b8; color:#00c8b8; font-size:12px; font-weight:700; padding:7px 20px; border-radius:20px; cursor:pointer; font-family:inherit;">📋 URLをコピー</button>
+  </div>
+
+  <div style="font-size:11px; color:#7a9ab5; line-height:1.8;">
+    ホーム画面に追加する場合は<br>SafariでURLを開いてから<br>「ホーム画面に追加」してください。
+  </div>
 </div>
 
 <!-- トライアルバナー -->
@@ -903,14 +913,27 @@ function loadTheme() { setTheme(localStorage.getItem('mojimikkke_theme') || 'def
 function openSettings() { document.getElementById('settings-panel').classList.add('open'); document.getElementById('settings-overlay').classList.add('open'); }
 function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); document.getElementById('settings-overlay').classList.remove('open'); }
 
-// ===== Safari判定 =====
+function copyUrl() {
+  navigator.clipboard.writeText('https://moji-mikke.pages.dev')
+    .then(() => { document.getElementById('site-url').textContent = 'コピーしました！'; setTimeout(()=>{ document.getElementById('site-url').textContent='moji-mikke.pages.dev'; }, 2000); })
+    .catch(() => { document.getElementById('site-url').textContent = 'moji-mikke.pages.dev'; });
+}
+
+// ===== Safari判定（ページ読み込み直後に実行）=====
 function checkSafariBrowser() {
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua);
+  if (!isIOS) return; // PC・Androidはスルー
+
   const isStandalone = window.navigator.standalone === true;
-  // ホーム画面スタンドアロンのみ案内表示（インアプリはマイクエラー時に表示）
-  if (isIOS && isStandalone) {
-    document.getElementById('safari-guide').style.display = 'flex';
+  // 本物のMobile SafariのみUAに "Version/xx.xx" が含まれる
+  // ChatworkやLINEなどのインアプリブラウザにはこのトークンがない
+  const isRealSafari = /Version\/[\d.]+.*Safari\//.test(ua) &&
+    !/CriOS|FxiOS|OPiOS/.test(ua) &&
+    !isStandalone;
+
+  if (!isRealSafari) {
+    showSafariGuide();
   }
 }
 
