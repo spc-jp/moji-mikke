@@ -186,6 +186,14 @@
   .theme-swatch { width:36px; height:36px; border-radius:50%; margin:0 auto 8px; }
   .theme-name { font-size:12px; font-weight:700; color:var(--text); }
 
+  /* トライアルバナー */
+  #trial-banner { position:fixed; top:0; left:0; right:0; z-index:300; padding:10px 16px; text-align:center; font-size:13px; font-weight:700; line-height:1.5; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+  #trial-banner.trial-active { background:linear-gradient(90deg,#b8860b,#D0A900,#b8860b); color:#fff; box-shadow:0 2px 12px rgba(208,169,0,.4); }
+  #trial-banner.trial-ended  { background:linear-gradient(90deg,#7f1d1d,#b91c1c); color:#fff; box-shadow:0 2px 12px rgba(185,28,28,.4); }
+  #trial-banner a.stripe-btn { background:#fff; color:#b91c1c; font-size:12px; font-weight:900; padding:5px 14px; border-radius:20px; text-decoration:none; white-space:nowrap; transition:opacity .2s; }
+  #trial-banner a.stripe-btn:hover { opacity:.85; }
+  body { padding-top:44px; }
+
   /* トースト */
   #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--th-primary); color:#fff; font-size:13px; font-weight:700; padding:10px 24px; border-radius:30px; opacity:0; transition:all .3s; pointer-events:none; z-index:999; white-space:nowrap; }
   #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -218,6 +226,11 @@
 </style>
 </head>
 <body>
+
+<!-- トライアルバナー -->
+<div id="trial-banner" class="trial-active">
+  <span id="trial-msg">🎁 今なら3回まで無料でお試しいただけます（登録不要）</span>
+</div>
 
 <header>
   <div class="logo-icon">🔍</div>
@@ -657,8 +670,43 @@ function stopRec() {
   stopTimer(); updateBtn();
 }
 
+// ===== トライアル管理 =====
+const TRIAL_KEY   = 'mojimikke_trial';
+const TRIAL_MAX   = 3;
+const STRIPE_URL  = 'https://buy.stripe.com/aFabJ022m2IRa51g7qcV202';
+
+function getTrialCount() { return parseInt(localStorage.getItem(TRIAL_KEY) || '0', 10); }
+function setTrialCount(n) { localStorage.setItem(TRIAL_KEY, String(n)); }
+
+function updateTrialBanner() {
+  const used   = getTrialCount();
+  const remain = TRIAL_MAX - used;
+  const banner = document.getElementById('trial-banner');
+  const msg    = document.getElementById('trial-msg');
+  const btn    = document.getElementById('summarize-btn');
+
+  if (used === 0) {
+    banner.className = 'trial-active';
+    msg.innerHTML = '🎁 今なら3回まで無料でお試しいただけます（登録不要）';
+    if (btn) btn.disabled = getTranscript().length === 0;
+  } else if (remain > 0) {
+    banner.className = 'trial-active';
+    msg.innerHTML = `🎁 無料体験 残り${remain}回（全${TRIAL_MAX}回）`;
+    if (btn) btn.disabled = getTranscript().length === 0;
+  } else {
+    banner.className = 'trial-ended';
+    msg.innerHTML = `⚠️ 無料体験が終了しました　<a class="stripe-btn" href="${STRIPE_URL}" target="_blank" rel="noopener">ご購入はこちら →</a>`;
+    if (btn) { btn.disabled = true; btn.textContent = '✨ ご購入後にご利用いただけます'; }
+  }
+}
+
 // ===== AI要約 =====
 async function summarize() {
+  const used = getTrialCount();
+  if (used >= TRIAL_MAX) {
+    window.open(STRIPE_URL, '_blank');
+    return;
+  }
   const text = getTranscript(); if (!text) return;
   const title = document.getElementById('meeting-title').value || '無題';
   const date  = document.getElementById('meeting-date').value  || new Date().toLocaleDateString('ja-JP');
@@ -677,11 +725,16 @@ async function summarize() {
     lastSummaryData = result;
     lastSummaryText = buildText(result, title, date);
     renderSummary(result);
+    // 成功したらカウントアップ
+    setTrialCount(used + 1);
+    updateTrialBanner();
   } catch(err) {
     alert('要約に失敗しました。\n' + err.message);
   } finally {
     document.getElementById('loading-wrap').classList.remove('visible');
-    document.getElementById('summarize-btn').disabled = false;
+    if (getTrialCount() < TRIAL_MAX) {
+      document.getElementById('summarize-btn').disabled = getTranscript().length === 0;
+    }
   }
 }
 
@@ -838,6 +891,7 @@ function closeSettings() { document.getElementById('settings-panel').classList.r
 loadTheme();
 setAutoDate();
 renderHistory();
+updateTrialBanner();
 </script>
 </body>
 </html>
