@@ -135,15 +135,41 @@
   .btn-line:active { opacity:.88; transform:translateY(0); }
 
   /* ローディング */
-  .loading-wrap { display:none; flex-direction:column; align-items:center; gap:12px; padding:24px 0; }
+  .loading-wrap { display:none; flex-direction:column; align-items:center; gap:14px; padding:28px 0; }
   .loading-wrap.visible { display:flex; }
+
+  /* 生成中アニメーション */
+  .magic-emoji { font-size:48px; display:inline-block; animation: magicBounce 1.1s ease-in-out infinite; }
+  @keyframes magicBounce {
+    0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+    25%     { transform: translateY(-10px) scale(1.15) rotate(-8deg); }
+    50%     { transform: translateY(0) scale(1) rotate(0deg); }
+    75%     { transform: translateY(-10px) scale(1.15) rotate(8deg); }
+  }
+  .sparkle-wrap { position:relative; width:64px; height:64px; display:flex; align-items:center; justify-content:center; }
+  .sparkle { position:absolute; font-size:16px; opacity:0; animation: sparkleFly 1.6s ease-in-out infinite; }
+  .sparkle:nth-child(1) { top:-6px; left:-6px; animation-delay:0s; }
+  .sparkle:nth-child(2) { top:-6px; right:-6px; animation-delay:.35s; }
+  .sparkle:nth-child(3) { bottom:-6px; left:-2px; animation-delay:.7s; }
+  .sparkle:nth-child(4) { bottom:-2px; right:-8px; animation-delay:1.05s; }
+  @keyframes sparkleFly {
+    0%   { opacity:0; transform: scale(.3) translateY(6px); }
+    30%  { opacity:1; transform: scale(1.2) translateY(-6px); }
+    60%  { opacity:0; transform: scale(.5) translateY(-14px); }
+    100% { opacity:0; }
+  }
+  .loading-txt-main { font-size:14px; font-weight:700; color:var(--text); }
+  .loading-txt { font-size:12px; color:var(--muted); }
   .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--th-primary); border-radius:50%; animation:spin .8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  .loading-txt { font-size:13px; color:var(--muted); }
 
   /* 要約出力 */
   #summary-wrap { display:none; }
-  #summary-wrap.visible { display:block; }
+  #summary-wrap.visible { display:block; animation: summaryFadeIn .5s ease-out; }
+  @keyframes summaryFadeIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
   .summary-section { border-left:3px solid var(--th-primary); padding-left:13px; margin-bottom:16px; }
   .summary-section h3 { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:7px; }
   .summary-section ul { list-style:none; padding:0; }
@@ -263,23 +289,15 @@
     <div class="sub">AI VOICE & TEXT</div>
   </div>
   <span class="badge-pro" style="margin-left:auto;">Pro</span>
+  <button class="settings-btn" onclick="openHelp()" title="使い方">❓</button>
   <button class="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
 </header>
 
 <main>
 
-  <!-- 情報入力 -->
-  <div class="card">
-    <div class="card-title">📋 情報入力（任意）</div>
-    <div class="info-row">
-      <input type="text" id="meeting-title" placeholder="タイトル・案件名">
-      <input type="text" id="meeting-date" placeholder="日時（自動入力）">
-    </div>
-  </div>
-
   <!-- 入力カード -->
   <div class="card">
-    <div class="card-title">🎙️ 入力方法を選んでください</div>
+    <div class="card-title">🎙️ ① 録音 or テキスト入力</div>
 
     <!-- 入力タブ切り替え -->
     <div class="input-tabs">
@@ -297,9 +315,9 @@
         <div class="rec-status" id="rec-status">タップして録音開始</div>
       </div>
       <div id="transcript-box" class="placeholder">録音すると、ここにリアルタイムで文字が表示されます。</div>
-      <div class="transcript-actions">
-        <button class="btn btn-ghost" onclick="clearTranscript()">🗑️ クリア</button>
-        <button class="btn btn-ghost" onclick="copyTranscript()">📋 コピー</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:8px;">
+        <button class="btn btn-ghost" style="font-size:11px; padding:6px 12px; min-height:32px;" onclick="clearTranscript()">🗑️ やり直す</button>
+        <button class="btn btn-ghost" style="font-size:12px; padding:6px 14px; min-height:32px; border-color:var(--th-primary); color:var(--th-primary);" onclick="saveDraft()">💾 議事録を保存</button>
       </div>
     </div>
 
@@ -314,19 +332,50 @@
     </div>
   </div>
 
+  <!-- 情報入力 -->
+  <div class="card">
+    <div class="card-title">📋 ② 情報入力（任意）</div>
+    <div class="info-row" style="margin-bottom:10px;">
+      <select id="meeting-type" onchange="onTypeChange()" style="flex:1; min-width:130px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--font); font-size:14px; padding:10px 12px; outline:none; -webkit-appearance:none;">
+        <option value="">種類を選択（任意）</option>
+        <option value="naibu">🏢 社内会議</option>
+        <option value="customer">🤝 お客様との打合せ</option>
+        <option value="sales">💼 商談</option>
+      </select>
+    </div>
+    <div class="info-row">
+      <input type="text" id="meeting-title" placeholder="タイトル・案件名（自由記入）">
+      <input type="text" id="meeting-date" placeholder="日時（自動入力）">
+    </div>
+  </div>
+
+  <!-- 未生成の議事録（下書き） -->
+  <div class="card" id="draft-card" style="display:none;">
+    <div class="card-title" style="cursor:pointer;" onclick="toggleDrafts()">
+      📥 保存した議事録（未生成）
+      <span id="draft-count" style="margin-left:auto;font-size:11px;color:var(--muted);"></span>
+      <span id="draft-arrow" style="margin-left:8px;color:var(--muted);">▼</span>
+    </div>
+    <div id="draft-body" class="open">
+      <div id="draft-list"></div>
+    </div>
+  </div>
+
   <!-- AI要約 -->
   <div class="card">
-    <div class="card-title">🤖 Claude AI 要約</div>
+    <div class="card-title">🤖 ③④ 出力形式を選んで生成</div>
 
     <div style="margin-bottom:14px;">
       <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;">🎯 出力形式を選ぶ</div>
       <div class="mode-tabs">
-        <button class="mode-tab active" data-mode="first" onclick="setMode('first')">🤝 初回ヒアリング</button>
+        <button class="mode-tab active" data-mode="first" onclick="setMode('first')">🤝 打合せ</button>
         <button class="mode-tab" data-mode="sales" onclick="setMode('sales')">💼 商談</button>
         <button class="mode-tab" data-mode="meeting" onclick="setMode('meeting')">📋 会議</button>
         <button class="mode-tab" data-mode="consult" onclick="setMode('consult')">🏢 経営相談</button>
         <button class="mode-tab" data-mode="recruit" onclick="setMode('recruit')">👔 採用面接</button>
         <button class="mode-tab" data-mode="app" onclick="setMode('app')">💡 アプリ開発</button>
+        <button class="mode-tab" data-mode="training" onclick="setMode('training')">🎓 研修メモ</button>
+        <button class="mode-tab" data-mode="claim" onclick="setMode('claim')">📦 クレーム対応</button>
       </div>
       <div class="mode-desc" id="mode-desc">顧客の現状・課題・要望・予算感・次のステップを整理します。</div>
     </div>
@@ -334,8 +383,15 @@
     <button class="btn btn-primary" id="summarize-btn" onclick="summarize()" disabled>✨ AI要約を生成する</button>
 
     <div class="loading-wrap" id="loading-wrap">
-      <div class="spinner"></div>
-      <div class="loading-txt" id="loading-txt">Claudeが整理しています…</div>
+      <div class="sparkle-wrap">
+        <span class="magic-emoji" id="magic-emoji">✨</span>
+        <span class="sparkle">⭐</span>
+        <span class="sparkle">💫</span>
+        <span class="sparkle">✨</span>
+        <span class="sparkle">🌟</span>
+      </div>
+      <div class="loading-txt-main" id="loading-txt">Claudeが整理しています…</div>
+      <div class="loading-txt" id="loading-sub">もうすぐ完成です…！</div>
     </div>
 
     <div id="summary-wrap">
@@ -347,6 +403,7 @@
         <div class="summary-section"><h3>⚠️ 課題・悩み</h3><ul id="out-issues"></ul></div>
         <div class="summary-section"><h3>💬 要望・期待</h3><ul id="out-wants"></ul></div>
         <div class="summary-section"><h3>💰 予算感・条件</h3><ul id="out-budget"></ul></div>
+        <div class="summary-section"><h3>💡 提案の方向性</h3><ul id="out-proposal-first"></ul></div>
         <div class="summary-section"><h3>📅 次のステップ</h3><ul id="out-next-first"></ul></div>
         <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-first-kw"></div></div>
       </div>
@@ -393,6 +450,24 @@
         <div class="summary-section"><h3>👤 想定ユーザー</h3><ul id="out-users"></ul></div>
         <div class="summary-section"><h3>🚀 MVP構成案</h3><ul id="out-mvp"></ul></div>
         <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-app-kw"></div></div>
+      </div>
+
+      <!-- 研修メモ -->
+      <div id="out-training" style="display:none">
+        <div class="summary-section"><h3>📖 テーマ・概要</h3><ul id="out-theme"></ul></div>
+        <div class="summary-section"><h3>💡 学びポイント</h3><ul id="out-learned"></ul></div>
+        <div class="summary-section"><h3>❓ 質疑応答</h3><ul id="out-qa"></ul></div>
+        <div class="summary-section"><h3>🚀 今後への活かし方</h3><ul id="out-apply"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-training-kw"></div></div>
+      </div>
+
+      <!-- クレーム対応 -->
+      <div id="out-claim" style="display:none">
+        <div class="summary-section"><h3>⚠️ 発生事象</h3><ul id="out-event"></ul></div>
+        <div class="summary-section"><h3>💬 お客様の要望</h3><ul id="out-demand"></ul></div>
+        <div class="summary-section"><h3>🛠️ 対応内容</h3><ul id="out-action"></ul></div>
+        <div class="summary-section"><h3>🔁 再発防止策</h3><ul id="out-prevent"></ul></div>
+        <div class="summary-section"><h3>🔑 キーワード</h3><div class="keyword-list" id="out-claim-kw"></div></div>
       </div>
 
       <div class="summary-actions">
@@ -450,6 +525,54 @@
   <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-top:auto;">選んだテーマは次回起動時も引き継がれます。</div>
 </div>
 
+<!-- 使い方モーダル -->
+<div class="modal-overlay" id="help-overlay" onclick="closeHelpOutside(event)">
+  <div class="modal">
+    <div class="modal-title">📖 文字みっけの使い方</div>
+
+    <div style="margin-bottom:18px;">
+      <div style="font-size:12px;font-weight:700;color:var(--th-primary);letter-spacing:1px;margin-bottom:8px;">🎯 目的</div>
+      <div style="font-size:13px;line-height:1.9;color:var(--text);">
+        商談・会議・面接・経営相談などの「話した内容」を、その場でスマホ1台でテキスト化し、AIが要点・決定事項・次のアクションに自動整理します。<br>
+        メモを取る手間がなくなり、商談相手との対話に集中できます。
+      </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <div style="font-size:12px;font-weight:700;color:var(--th-primary);letter-spacing:1px;margin-bottom:8px;">📝 使い方の流れ</div>
+      <div style="font-size:13px;line-height:2.1;color:var(--text);">
+        <strong>① 録音する（タップして開始）</strong><br>
+        商談・会議が始まったら、すぐにマイクボタンをタップ。話すだけで自動的に文字に変換されます。<br>
+        📋「テキストを貼る」タブを使えば、Zoom議事録やメモを直接貼り付けることもできます。<br><br>
+
+        <strong>② 情報入力（任意）</strong><br>
+        「社内会議」「お客様との打合せ」「商談」から種類を選ぶと、③の出力形式が自動で切り替わります。タイトルは自由記入できます。日時は自動入力されます。<br><br>
+
+        <strong>③ 出力形式を選ぶ</strong><br>
+        ②で選んだ種類に応じて自動セットされます。経営相談・採用面接・アプリ開発を使いたいときは、ここで手動で切り替えてください。<br><br>
+
+        <strong>④ AI要約を生成する</strong><br>
+        ボタンをタップすると、Claude AIが内容を自動整理します（無料体験は3回まで）。<br><br>
+
+        <strong>⑤ コピー・保存・LINE送信</strong><br>
+        📋コピーしてメモへ貼り付け、💾履歴に保存していつでも見返す、📲LINEで自分や関係者に送る、のいずれかが可能です。
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--th-primary);letter-spacing:1px;margin-bottom:8px;">💡 活用シーン</div>
+      <div style="font-size:13px;line-height:1.9;color:var(--text);">
+        対面の商談・打ち合わせでスマホを置いて録音 → 終了後すぐにAI要約 → そのまま社内共有や次の提案準備に。<br>
+        「言った・言わない」のトラブル防止にも役立ちます。
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="width:auto;" onclick="closeHelp()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- モーダル -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -471,10 +594,10 @@ const WORKER_URL = 'https://moji-mikke.yymmatsu.workers.dev';
 
 const MODES = {
   first: {
-    label: '初回ヒアリング',
-    desc:  '顧客の現状・課題・要望・予算感・次のステップを整理します。',
-    loading: 'Claudeがヒアリング内容を整理しています…',
-    prompt: (t,d,tx) => `以下は「${t}」（${d}）の初回ヒアリングの記録です。\n---\n${tx}\n---\nJSONのみで返してください（マークダウン不要）。\n{"mode":"first","current":["現状1"],"issues":["課題1"],"wants":["要望1"],"budget":["予算・条件1"],"next":["次のステップ1"],"keywords":["kw1","kw2"]}`
+    label: 'お客様との打合せ',
+    desc:  '現状・課題・要望・予算感・提案の方向性・次のステップを整理します。',
+    loading: 'Claudeが打合せ内容を整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）のお客様との打合せの記録です。\n---\n${tx}\n---\nJSONのみで返してください（マークダウン不要）。\n{"mode":"first","current":["現状1"],"issues":["課題1"],"wants":["要望1"],"budget":["予算・条件1"],"proposal":["提案の方向性1"],"next":["次のステップ1"],"keywords":["kw1","kw2"]}`
   },
   sales: {
     label: '商談',
@@ -505,6 +628,18 @@ const MODES = {
     desc:  'アイデア・機能・ユーザー・MVP構成を提案します（シングルHTML前提）。',
     loading: 'Claudeがアプリアイデアを整理しています…',
     prompt: (t,d,tx) => `以下は「${t}」（${d}）のアプリ開発メモです。\n---\n${tx}\n---\nJSONのみで返してください（マークダウン不要）。シングルHTMLアプリ開発の観点で提案してください。\n{"mode":"app","ideas":["アイデア1"],"features":["機能1"],"users":["ユーザー1"],"mvp":["MVP案1"],"keywords":["kw1","kw2"]}`
+  },
+  training: {
+    label: '研修メモ',
+    desc:  'テーマ・学びポイント・質疑応答・今後への活かし方を整理します。',
+    loading: 'Claudeが研修内容を整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）の研修・セミナーの記録です。\n---\n${tx}\n---\nJSONのみで返してください（マークダウン不要）。\n{"mode":"training","theme":["テーマ・概要1"],"learned":["学びポイント1"],"qa":["質疑応答1"],"apply":["今後への活かし方1"],"keywords":["kw1","kw2"]}`
+  },
+  claim: {
+    label: 'クレーム対応',
+    desc:  '発生事象・お客様の要望・対応内容・再発防止策を整理します。',
+    loading: 'Claudeがクレーム内容を整理しています…',
+    prompt: (t,d,tx) => `以下は「${t}」（${d}）のクレーム対応の記録です。\n---\n${tx}\n---\nJSONのみで返してください（マークダウン不要）。\n{"mode":"claim","event":["発生事象1"],"demand":["お客様の要望1"],"action":["対応内容1"],"prevent":["再発防止策1"],"keywords":["kw1","kw2"]}`
   }
 };
 
@@ -540,6 +675,13 @@ function setMode(m) {
   document.getElementById('mode-desc').textContent = MODES[m].desc;
 }
 
+// ===== 種類選択 → 出力形式 連動 =====
+const TYPE_TO_MODE = { naibu:'meeting', customer:'first', sales:'sales' };
+function onTypeChange() {
+  const val = document.getElementById('meeting-type').value;
+  if (TYPE_TO_MODE[val]) setMode(TYPE_TO_MODE[val]);
+}
+
 // ===== 日時 =====
 function setAutoDate() {
   const now = new Date();
@@ -571,6 +713,88 @@ function copyTranscript() {
   const t = finalText.trim();
   if (!t) return toast('テキストがありません');
   navigator.clipboard.writeText(t).then(() => toast('テキストをコピーしました！'));
+}
+
+// ===== 議事録の下書き保存（録音→保存→後で生成） =====
+const DRAFT_KEY = 'mojimikke_drafts';
+function getDrafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); } catch { return []; } }
+function setDrafts(d) { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); }
+
+function saveDraft() {
+  const text = finalText.trim();
+  if (!text) return toast('録音内容がありません');
+  const title = document.getElementById('meeting-title').value || '無題';
+  const date  = document.getElementById('meeting-date').value  || new Date().toLocaleDateString('ja-JP');
+  const type  = document.getElementById('meeting-type').value || '';
+  const drafts = getDrafts();
+  drafts.unshift({ id:Date.now(), title, date, type, text, savedAt:new Date().toLocaleString('ja-JP') });
+  if (drafts.length > 30) drafts.pop();
+  setDrafts(drafts);
+  toast('議事録を保存しました！後で生成できます');
+  // 録音内容をクリアして次の打合せへ
+  finalText = ''; seconds = 0;
+  document.getElementById('timer').textContent = '00:00';
+  const b = document.getElementById('transcript-box');
+  b.textContent = '録音すると、ここにリアルタイムで文字が表示されます。';
+  b.className = 'placeholder';
+  document.getElementById('meeting-title').value = '';
+  document.getElementById('meeting-type').value = '';
+  setAutoDate();
+  updateBtn();
+  renderDrafts();
+}
+
+const TYPE_LABEL = { naibu:'🏢 社内会議', customer:'🤝 お客様との打合せ', sales:'💼 商談', '':'' };
+
+function renderDrafts() {
+  const drafts = getDrafts();
+  const card = document.getElementById('draft-card');
+  card.style.display = drafts.length ? 'block' : 'none';
+  document.getElementById('draft-count').textContent = drafts.length ? drafts.length+'件' : '';
+  const list = document.getElementById('draft-list');
+  list.innerHTML = '';
+  drafts.forEach((d,i) => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `<div class="history-item-header"><div class="history-item-title">${TYPE_LABEL[d.type]||'📝'} ${esc(d.title)}</div><div class="history-item-date">${esc(d.savedAt)}</div></div><div class="history-item-preview">${esc(d.text.slice(0,40))}…</div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary" style="flex:1; min-height:36px; padding:8px; font-size:12px;" onclick="loadDraft(${i})">✨ これを生成する</button>
+        <button class="btn btn-danger" style="min-height:36px; padding:8px 12px; font-size:12px;" onclick="removeDraft(${i})">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function loadDraft(i) {
+  const drafts = getDrafts();
+  const d = drafts[i]; if (!d) return;
+  switchInput('text');
+  document.getElementById('paste-input').value = d.text;
+  document.getElementById('meeting-title').value = d.title;
+  document.getElementById('meeting-date').value = d.date;
+  document.getElementById('meeting-type').value = d.type;
+  if (d.type) onTypeChange();
+  updateBtn();
+  toast('読み込みました。出力形式を確認して生成してください');
+  document.getElementById('paste-input').scrollIntoView({behavior:'smooth', block:'center'});
+  // 生成後に下書きを消すため一時保存
+  window._loadedDraftIndex = i;
+}
+
+function removeDraft(i) {
+  if (!confirm('この下書きを削除しますか？')) return;
+  const drafts = getDrafts();
+  drafts.splice(i,1);
+  setDrafts(drafts);
+  renderDrafts();
+}
+
+function toggleDrafts() {
+  const body = document.getElementById('draft-body');
+  const arrow = document.getElementById('draft-arrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▼' : '▶';
+  body.style.display = open ? 'block' : 'none';
 }
 
 // ===== 貼り付けパネル =====
@@ -748,6 +972,19 @@ async function summarize() {
   const date  = document.getElementById('meeting-date').value  || new Date().toLocaleDateString('ja-JP');
   const mode  = MODES[currentMode];
   document.getElementById('loading-txt').textContent = mode.loading;
+
+  // 絵文字＆サブテキストのサイクル演出
+  const emojis = ['✨','🔍','🧠','💡','✅'];
+  const subs   = ['もうすぐ完成です…！','内容を読み取っています…','要点を整理しています…','仕上げています…'];
+  let cycle = 0;
+  const magicEl = document.getElementById('magic-emoji');
+  const subEl   = document.getElementById('loading-sub');
+  const cycleTimer = setInterval(() => {
+    cycle++;
+    magicEl.textContent = emojis[cycle % emojis.length];
+    subEl.textContent   = subs[cycle % subs.length];
+  }, 900);
+
   document.getElementById('loading-wrap').classList.add('visible');
   document.getElementById('summary-wrap').classList.remove('visible');
   document.getElementById('summarize-btn').disabled = true;
@@ -760,11 +997,28 @@ async function summarize() {
     const result = JSON.parse(raw);
     lastSummaryData = result;
     lastSummaryText = buildText(result, title, date);
+
+    // 完成の演出（🎉）→ 結果表示
+    clearInterval(cycleTimer);
+    magicEl.textContent = '🎉';
+    document.getElementById('loading-txt').textContent = '完成しました！';
+    subEl.textContent = '結果を表示します…';
+    await new Promise(r => setTimeout(r, 500));
+
     renderSummary(result);
     // 成功したらカウントアップ
     setTrialCount(used + 1);
     updateTrialBanner();
+    // 下書きから読み込んだ場合は削除
+    if (typeof window._loadedDraftIndex === 'number') {
+      const drafts = getDrafts();
+      drafts.splice(window._loadedDraftIndex, 1);
+      setDrafts(drafts);
+      window._loadedDraftIndex = null;
+      renderDrafts();
+    }
   } catch(err) {
+    clearInterval(cycleTimer);
     alert('要約に失敗しました。\n' + err.message);
   } finally {
     document.getElementById('loading-wrap').classList.remove('visible');
@@ -788,11 +1042,11 @@ function renderSummary(r) {
     const el = document.getElementById(id); if (!el) return; el.innerHTML = '';
     (arr||[]).forEach(k => { const s = document.createElement('span'); s.className = 'kw-tag'; s.textContent = k; el.appendChild(s); });
   };
-  ['out-first','out-sales','out-meeting','out-consult','out-recruit','out-app'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['out-first','out-sales','out-meeting','out-consult','out-recruit','out-app','out-training','out-claim'].forEach(id => document.getElementById(id).style.display = 'none');
 
   if (r.mode === 'first') {
     document.getElementById('out-first').style.display = 'block';
-    ul('out-current',r.current); ul('out-issues',r.issues); ul('out-wants',r.wants); ul('out-budget',r.budget); ul('out-next-first',r.next); kw('out-first-kw',r.keywords);
+    ul('out-current',r.current); ul('out-issues',r.issues); ul('out-wants',r.wants); ul('out-budget',r.budget); ul('out-proposal-first',r.proposal); ul('out-next-first',r.next); kw('out-first-kw',r.keywords);
   } else if (r.mode === 'sales') {
     document.getElementById('out-sales').style.display = 'block';
     ul('out-needs',r.needs); ul('out-proposal',r.proposal); ul('out-concerns',r.concerns); ul('out-next-sales',r.next); kw('out-sales-kw',r.keywords);
@@ -808,21 +1062,29 @@ function renderSummary(r) {
   } else if (r.mode === 'app') {
     document.getElementById('out-app').style.display = 'block';
     ul('out-ideas',r.ideas); ul('out-features',r.features); ul('out-users',r.users); ul('out-mvp',r.mvp); kw('out-app-kw',r.keywords);
+  } else if (r.mode === 'training') {
+    document.getElementById('out-training').style.display = 'block';
+    ul('out-theme',r.theme); ul('out-learned',r.learned); ul('out-qa',r.qa); ul('out-apply',r.apply); kw('out-training-kw',r.keywords);
+  } else if (r.mode === 'claim') {
+    document.getElementById('out-claim').style.display = 'block';
+    ul('out-event',r.event); ul('out-demand',r.demand); ul('out-action',r.action); ul('out-prevent',r.prevent); kw('out-claim-kw',r.keywords);
   }
   document.getElementById('summary-wrap').classList.add('visible');
   document.getElementById('summary-wrap').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function buildText(r, title, date) {
-  const ml = {first:'初回ヒアリング',sales:'商談メモ',meeting:'会議メモ',consult:'経営相談',recruit:'採用面接',app:'アプリ開発メモ'};
+  const ml = {first:'打合せ',sales:'商談メモ',meeting:'会議メモ',consult:'経営相談',recruit:'採用面接',app:'アプリ開発メモ',training:'研修メモ',claim:'クレーム対応'};
   let out = `【${title}】${date}\n＜${ml[r.mode]||''}＞\n\n`;
   const sec = (label, arr) => arr && arr.length ? `◆ ${label}\n` + arr.map(i => '・'+i).join('\n') + '\n\n' : '';
-  if (r.mode==='first')   { out+=sec('顧客の現状',r.current)+sec('課題・悩み',r.issues)+sec('要望・期待',r.wants)+sec('予算感・条件',r.budget)+sec('次のステップ',r.next); }
+  if (r.mode==='first')   { out+=sec('顧客の現状',r.current)+sec('課題・悩み',r.issues)+sec('要望・期待',r.wants)+sec('予算感・条件',r.budget)+sec('提案の方向性',r.proposal)+sec('次のステップ',r.next); }
   else if (r.mode==='sales')   { out+=sec('顧客の課題・ニーズ',r.needs)+sec('提案ポイント',r.proposal)+sec('懸念・反論',r.concerns)+sec('次のアクション',r.next); }
   else if (r.mode==='meeting') { out+=sec('要点',r.points)+sec('決定したこと',r.decisions)+sec('次のアクション',r.todos); }
   else if (r.mode==='consult') { out+=sec('経営状況・現状',r.status)+sec('優先すべき課題',r.issues)+sec('改善・対策アイデア',r.ideas)+sec('次のアクション',r.next); }
   else if (r.mode==='recruit') { out+=sec('応募者プロフィール',r.profile)+sec('強み・アピール',r.strengths)+sec('懸念点・確認事項',r.worries)+sec('採用判断メモ',r.judgment); }
   else if (r.mode==='app')     { out+=sec('アプリ化アイデア',r.ideas)+sec('必要な機能',r.features)+sec('想定ユーザー',r.users)+sec('MVP構成案',r.mvp); }
+  else if (r.mode==='training') { out+=sec('テーマ・概要',r.theme)+sec('学びポイント',r.learned)+sec('質疑応答',r.qa)+sec('今後への活かし方',r.apply); }
+  else if (r.mode==='claim')    { out+=sec('発生事象',r.event)+sec('お客様の要望',r.demand)+sec('対応内容',r.action)+sec('再発防止策',r.prevent); }
   out += '◆ キーワード\n' + (r.keywords||[]).join('、') + '\n\n---\npowered by 文字みっけ（smileplusctg.com）';
   return out;
 }
@@ -859,7 +1121,7 @@ function renderHistory() {
   document.getElementById('history-count').textContent = hist.length ? hist.length+'件' : '';
   const list = document.getElementById('history-list');
   if (!hist.length) { list.innerHTML='<div class="history-empty">保存した履歴はまだありません。</div>'; return; }
-  const ml = {first:'🤝 初回',sales:'💼 商談',meeting:'📋 会議',consult:'🏢 経営',recruit:'👔 採用',app:'💡 アプリ'};
+  const ml = {first:'🤝 打合せ',sales:'💼 商談',meeting:'📋 会議',consult:'🏢 経営',recruit:'👔 採用',app:'💡 アプリ',training:'🎓 研修',claim:'📦 クレーム'};
   list.innerHTML = '';
   hist.forEach((item, i) => {
     const div = document.createElement('div');
@@ -923,6 +1185,10 @@ function loadTheme() { setTheme(localStorage.getItem('mojimikkke_theme') || 'def
 function openSettings() { document.getElementById('settings-panel').classList.add('open'); document.getElementById('settings-overlay').classList.add('open'); }
 function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); document.getElementById('settings-overlay').classList.remove('open'); }
 
+function openHelp() { document.getElementById('help-overlay').classList.add('visible'); }
+function closeHelp() { document.getElementById('help-overlay').classList.remove('visible'); }
+function closeHelpOutside(e) { if (e.target === document.getElementById('help-overlay')) closeHelp(); }
+
 function copyUrl() {
   navigator.clipboard.writeText('https://moji-mikke.pages.dev')
     .then(() => { document.getElementById('site-url').textContent = 'コピーしました！'; setTimeout(()=>{ document.getElementById('site-url').textContent='moji-mikke.pages.dev'; }, 2000); })
@@ -955,6 +1221,7 @@ function showSafariGuide() {
 loadTheme();
 setAutoDate();
 renderHistory();
+renderDrafts();
 updateTrialBanner();
 </script>
 </body>
